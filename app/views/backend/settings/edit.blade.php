@@ -53,9 +53,9 @@ padding: 0px 20px;
 	                                    </div>
 	                                    <div class="col-md-9">
 		                                   @if (Config::get('app.lock_passwords')===true)
-		                                   		{{ Form::text('site_name', Input::old('site_name', $setting->site_name), array('class' => 'form-control', 'disabled'=>'disabled','placeholder' => 'Snipe-IT Asset Management')) }}
+		                                   		{{ Form::text('site_name', Input::old('site_name', $setting->site_name), array('class' => 'form-control', 'disabled'=>'disabled','placeholder' => '0007Asset Management')) }}
 		                                   @else
-		                                   		{{ Form::text('site_name', Input::old('site_name', $setting->site_name), array('class' => 'form-control','placeholder' => 'Snipe-IT Asset Management')) }}
+		                                   		{{ Form::text('site_name', Input::old('site_name', $setting->site_name), array('class' => 'form-control','placeholder' => 'Asset Management')) }}
 
 		                                   @endif
 
@@ -278,9 +278,9 @@ padding: 0px 20px;
 	                                    </div>
 	                                    <div class="col-md-9">
 										@if (Config::get('app.lock_passwords')===true)
-		                                     	{{ Form::text('slack_botname', Input::old('slack_botname', $setting->slack_botname), array('class' => 'form-control','disabled'=>'disabled','placeholder' => 'Snipe-IT Bot')) }}
+		                                     	{{ Form::text('slack_botname', Input::old('slack_botname', $setting->slack_botname), array('class' => 'form-control','disabled'=>'disabled','placeholder' => 'Bot')) }}
 		                                @else
-		                                   		{{ Form::text('slack_botname', Input::old('slack_botname', $setting->slack_botname), array('class' => 'form-control','placeholder' => 'Snipe-IT Bot')) }}
+		                                   		{{ Form::text('slack_botname', Input::old('slack_botname', $setting->slack_botname), array('class' => 'form-control','placeholder' => 'Bot')) }}
 		                                @endif
 		                                {{ $errors->first('slack_botname', '<br><span class="alert-msg">:message</span>') }}
 	                                    </div>
