@@ -400,13 +400,7 @@
 
         <div id="footer" class="col-md-offset-2 col-md-9 col-sm-12 col-xs-12 text-center">
 		                <div class="muted credit">
-	                  			<a target="_blank" href="http://snipeitapp.com">Snipe IT</a> is a free open source
-					  		project by
-					  			<a target="_blank" href="http://twitter.com/snipeyhead">@snipeyhead</a>.
-						  		<a target="_blank" href="https://github.com/snipe/snipe-it">Fork it</a> |
-						  		<a target="_blank" href="http://snipeitapp.com/documentation/">Documentation</a> |
-						  		<a href="https://crowdin.com/project/snipe-it">Help Translate It! </a> |
-						  		<a target="_blank" href="https://github.com/snipe/snipe-it/issues?state=open">Report a Bug</a>
+	                  			&copy; Copyright 2015. 
 						  		 &nbsp; &nbsp; ({{{  Config::get('version.app_version') }}})
                   		</div>
         </div>
