@@ -1,8 +1,6 @@
 <?php
 
-return array(
-
-
+    return [
     'accessories'			=> 'Accessories',
     'accessory'				=> 'Accessory',
     'action'                => 'Action',
@@ -37,7 +35,7 @@ return array(
     'create'				=> 'Create New',
     'created_asset'			=> 'created asset',
     'created_at' 			=> 'Created at',
-    'currency'  			=> '$',
+    'currency'  			=> '$', // this is deprecated
     'current'  				=> 'Current',
     'custom_report'         => 'Custom Asset Report',
     'dashboard'				=> 'Dashboard',
@@ -61,6 +59,9 @@ return array(
     'id'  					=> 'ID',
     'image_delete'         	=> 'Delete Image',
     'image_upload'         	=> 'Upload Image',
+    'asset_maintenance'        => 'Asset Maintenance',
+    'asset_maintenance_report' => 'Asset Maintenance Report',
+    'asset_maintenances'       => 'Asset Maintenances',
     'item'  				=> 'Item',
     'last'					=> 'Last',
     'last_name'				=> 'Last Name',
@@ -108,6 +109,7 @@ return array(
     'select_supplier'		=> 'Select a Supplier',
     'select_user'			=> 'Select a User',
     'select_date'			=> 'Select Date',
+    'select_statuslabel'	=> 'Select Status',
     'settings'				=> 'Settings',
     'sign_in'				=> 'Sign in',
     'site_name'				=> 'Site Name',
@@ -130,5 +132,4 @@ return array(
     'years'					=> 'years',
     'yes' 					=> 'Yes',
     'zip'  					=> 'Zip',
-
-);
+    ];

@@ -17,7 +17,9 @@ use Actionlog;
 use Location;
 use Setting;
 use Redirect;
+use Response;
 use Sentry;
+use Str;
 use Validator;
 use View;
 use Datatable;
@@ -76,7 +78,7 @@ class UsersController extends AdminController
 
         $location_list = array('' => '') + Location::lists('name', 'id');
         $manager_list = array('' => '') + DB::table('users')
-            ->select(DB::raw('concat(first_name," ",last_name) as full_name, id'))
+            ->select(DB::raw('concat(last_name,", ",first_name," (",email,")") as full_name, id'))
             ->whereNull('deleted_at','and')
             ->orderBy('last_name', 'asc')
             ->orderBy('first_name', 'asc')
@@ -211,7 +213,7 @@ class UsersController extends AdminController
 
             $location_list = array('' => '') + Location::lists('name', 'id');
             $manager_list = array('' => 'Select a User') + DB::table('users')
-            ->select(DB::raw('concat(first_name," ",last_name) as full_name, id'))
+            ->select(DB::raw('concat(last_name,", ",first_name," (",email,")") as full_name, id'))
             ->whereNull('deleted_at')
             ->where('id','!=',$id)
             ->orderBy('last_name', 'asc')
@@ -422,6 +424,21 @@ class UsersController extends AdminController
         }
     }
 
+    public function postBulkEdit() {
+
+        if (!Input::has('edit_user')) {
+			return Redirect::back()->with('error', 'No users selected');
+		} else {
+			$user_raw_array = Input::get('edit_user');
+			foreach ($user_raw_array as $user_id => $value) {
+				$user_ids[] = $user_id;
+
+			}
+
+		}
+
+    }
+
     /**
      * Restore a deleted user.
      *
@@ -557,7 +574,7 @@ class UsersController extends AdminController
 
             $location_list = array('' => '') + Location::lists('name', 'id');
             $manager_list = array('' => 'Select a User') + DB::table('users')
-            ->select(DB::raw('concat(first_name," ",last_name) as full_name, id'))
+            ->select(DB::raw('concat(last_name,", ",first_name," (",email,")") as full_name, id'))
             ->whereNull('deleted_at')
             ->where('id','!=',$id)
             ->orderBy('last_name', 'asc')
@@ -740,6 +757,10 @@ class UsersController extends AdminController
 
 
         return Datatable::collection($users)
+        ->addColumn('',function($users)
+            {
+                return '<div class="text-center"><input type="checkbox" name="edit_user['.$users->id.']" class="one_required"></div>';
+            })
         ->addColumn('name',function($users)
 	        {
 		        return '<a title="'.$users->fullName().'" href="users/'.$users->id.'/view">'.$users->fullName().'</a>';
@@ -808,6 +829,130 @@ class UsersController extends AdminController
 		}
 
 
+    /**
+    *  Upload the file to the server
+    *
+    * @param  int  $assetId
+    * @return View
+    **/
+    public function postUpload($userId = null)
+    {
+        $user = User::find($userId);
+
+        // the license is valid
+        $destinationPath = app_path().'/private_uploads';
+
+        if (isset($user->id)) {
+
+            if (Input::hasFile('userfile')) {
+
+                foreach(Input::file('userfile') as $file) {
+
+                $rules = array(
+                   'userfile' => 'required|mimes:png,gif,jpg,jpeg,doc,docx,pdf,txt,zip,rar|max:2000'
+                );
+                $validator = Validator::make(array('userfile'=> $file), $rules);
+
+                    if($validator->passes()){
+
+                        $extension = $file->getClientOriginalExtension();
+                        $filename = 'user-'.$user->id.'-'.str_random(8);
+                        $filename .= '-'.Str::slug($file->getClientOriginalName()).'.'.$extension;
+                        $upload_success = $file->move($destinationPath, $filename);
+
+                        //Log the deletion of seats to the log
+                        $logaction = new Actionlog();
+                        $logaction->asset_id = $user->id;
+                        $logaction->asset_type = 'user';
+                        $logaction->user_id = Sentry::getUser()->id;
+                        $logaction->note = e(Input::get('notes'));
+                        $logaction->checkedout_to =  NULL;
+                        $logaction->created_at =  date("Y-m-d h:i:s");
+                        $logaction->filename =  $filename;
+                        $log = $logaction->logaction('uploaded');
+                    } else {
+                         return Redirect::back()->with('error', Lang::get('admin/users/message.upload.invalidfiles'));
+                    }
+
+
+                }
+
+                if ($upload_success) {
+                    return Redirect::back()->with('success', Lang::get('admin/users/message.upload.success'));
+                } else {
+                   return Redirect::back()->with('error', Lang::get('admin/users/message.upload.error'));
+                }
+
+            } else {
+                 return Redirect::back()->with('error', Lang::get('admin/users/message.upload.nofiles'));
+            }
+
+        } else {
+            // Prepare the error message
+            $error = Lang::get('admin/users/message.does_not_exist', compact('id'));
+
+            // Redirect to the licence management page
+            return Redirect::route('users')->with('error', $error);
+        }
+    }
+
+/**
+    *  Delete the associated file
+    *
+    * @param  int  $assetId
+    * @return View
+    **/
+    public function getDeleteFile($userId = null, $fileId = null)
+    {
+        $user = User::find($userId);
+        $destinationPath = app_path().'/private_uploads';
+
+        // the license is valid
+        if (isset($user->id)) {
+
+            $log = Actionlog::find($fileId);
+            $full_filename = $destinationPath.'/'.$log->filename;
+            if (file_exists($full_filename)) {
+                unlink($destinationPath.'/'.$log->filename);
+            }
+            $log->delete();
+            return Redirect::back()->with('success', Lang::get('admin/users/message.deletefile.success'));
+
+        } else {
+            // Prepare the error message
+            $error = Lang::get('admin/users/message.does_not_exist', compact('id'));
+
+            // Redirect to the licence management page
+            return Redirect::route('users')->with('error', $error);
+        }
+    }
+
+
+
+    /**
+    *  Display/download the uploaded file
+    *
+    * @param  int  $assetId
+    * @return View
+    **/
+    public function displayFile($userId = null, $fileId = null)
+    {
+
+        $user = User::find($userId);
+
+        // the license is valid
+        if (isset($user->id)) {
+                $log = Actionlog::find($fileId);
+                $file = $log->get_src();
+                return Response::download($file);
+        } else {
+            // Prepare the error message
+            $error = Lang::get('admin/users/message.does_not_exist', compact('id'));
+
+            // Redirect to the licence management page
+            return Redirect::route('users')->with('error', $error);
+        }
+    }
 
 
 

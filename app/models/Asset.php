@@ -7,9 +7,10 @@ class Asset extends Depreciable
 
     protected $table = 'assets';
     protected $errors;
-    protected $rules = array(
+    protected $rules = [
         'name'   			=> 'alpha_space|min:2|max:255',
         'model_id'   		=> 'required',
+		'status_id'   		=> 'required',
         'warranty_months'   => 'integer|min:0|max:240',
         'note'   			=> 'alpha_space',
         'notes'   			=> 'alpha_space',
@@ -19,7 +20,7 @@ class Asset extends Depreciable
         'supplier_id' 		=> 'integer',
         'asset_tag'   		=> 'required|alpha_space|min:3|max:255|unique:assets,asset_tag,{id}',
         'status' 			=> 'integer'
-        );
+        ];
 
     public function depreciation()
     {
@@ -53,16 +54,20 @@ class Asset extends Depreciable
     **/
     public function assetloc()
     {
-        return $this->assigneduser->userloc();
+		if ($this->assigneduser) {
+			return $this->assigneduser->userloc();
+		} else {
+			return $this->belongsTo('Location', 'rtd_location_id');
+		}
+
     }
 
-
     /**
-    * Get the asset's location based on the assigned user
+    * Get the asset's location based on default RTD location
     **/
     public function defaultLoc()
     {
-        return $this->hasOne('Location', 'id', 'rtd_location_id');
+        return $this->belongsTo('Location', 'rtd_location_id');
     }
 
 
@@ -72,6 +77,21 @@ class Asset extends Depreciable
     public function assetlog()
     {
         return $this->hasMany('Actionlog','asset_id')->where('asset_type','=','hardware')->orderBy('created_at', 'desc')->withTrashed();
+    }
+
+    /**
+     * assetmaintenances
+     * Get improvements for this asset
+     * @return mixed
+     * @author  Vincent Sposato <vincent.sposato@gmail.com>
+     * @version v1.0
+     */
+    public function assetmaintenances()
+    {
+
+        return $this->hasMany( 'AssetMaintenance', 'asset_id' )
+                    ->orderBy( 'created_at', 'desc' )
+                    ->withTrashed();
     }
 
     /**
@@ -195,9 +215,12 @@ class Asset extends Depreciable
 
     public function eol_date()
     {
-            $date = date_create($this->purchase_date);
-            date_add($date, date_interval_create_from_date_string($this->model->eol.' months'));
-            return date_format($date, 'Y-m-d');
+	    	if (($this->purchase_date) && ($this->model)) {
+		    	$date = date_create($this->purchase_date);
+				date_add($date, date_interval_create_from_date_string($this->model->eol.' months'));
+				return date_format($date, 'Y-m-d');
+	    	}
+
     }
 
 

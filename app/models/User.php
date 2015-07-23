@@ -104,6 +104,17 @@ class User extends SentryUserModel
         return $this->hasMany('Asset','id')->withTrashed();
     }
 
+    /**
+    * Get uploads for this asset
+    */
+    public function uploads()
+    {
+        return $this->hasMany('Actionlog','asset_id')
+            ->where('asset_type', '=', 'user')
+            ->where('action_type', '=', 'uploaded')
+            ->whereNotNull('filename')
+            ->orderBy('created_at', 'desc');
+    }
 
     public function sentryThrottle() {
 	    return $this->hasOne('Throttle');
@@ -118,6 +129,25 @@ class User extends SentryUserModel
 	{
 		return $query->whereNull('deleted_at');
 	}
+
+    /**
+    * Override the SentryUser getPersistCode method for
+    * multiple logins at one time
+    **/
+    public function getPersistCode()
+    {
+
+        if (!Config::get('session.multi_login') || (!$this->persist_code))
+        {
+            $this->persist_code = $this->getRandomString();
+
+            // Our code got hashed
+            $persistCode = $this->persist_code;
+            $this->save();
+            return $persistCode;
+        }
+        return $this->persist_code;
+    }
 
 
 }
